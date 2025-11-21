@@ -1,0 +1,64 @@
+# version: "3.9"
+
+services:
+  apache:
+    image: php:8.2-apache
+    container_name: lampp-apache
+    ports:
+      - "8011:80"
+    volumes:
+      - ./htdocs:/var/www/html
+      - ./apache-config:/etc/apache2/sites-available
+    depends_on:
+      - mysql
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      XDEBUG_MODE: debug
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: lampp-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: testdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: lampp-phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  proftpd:
+    image: stilliard/pure-ftpd
+    container_name: lampp-proftpd
+    ports:
+      - "21:21"
+      - "30000-30009:30000-30009"
+    volumes:
+      - ./htdocs:/var/www/html
+    environment:
+      PUBLICHOST: localhost
+      FTP_USER_NAME: user
+      FTP_USER_PASS: pass123
+      FTP_USER_HOME: /var/www/html
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
