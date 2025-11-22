@@ -11,8 +11,11 @@ RUN a2enmod ssl
 RUN pecl install xdebug \
   && docker-php-ext-enable xdebug
 
-# Copy default vhost if needed
-COPY apache-config /etc/apache2/sites-available
+# Copy Apache configuration
+COPY ./apache-config/000-default.conf /etc/apache2/sites-available/000-default.conf
+
+# Enable mod_autoindex for directory listings
+RUN a2enmod autoindex
 
 # Enable your virtual hosts
-RUN a2ensite 000-default.conf || true
+RUN a2ensite 000-default.conf
